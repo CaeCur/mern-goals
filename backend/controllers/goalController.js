@@ -1,12 +1,13 @@
 const asyncHandler = require("express-async-handler");
 
 const Goal = require("../models/goalModel");
+const User = require("../models/userModel");
 
 // @desc    Get goals
 // @route   GET /api/goals
 // @access  Private
 const getGoals = asyncHandler(async (req, res) => {
-  const goals = await Goal.find();
+  const goals = await Goal.find({ user: req.user.id });
 
   res.status(200).json(goals);
 });
@@ -22,6 +23,7 @@ const setGoal = asyncHandler(async (req, res) => {
 
   const goal = await Goal.create({
     description: req.body.description,
+    user: req.user.id,
   });
 
   res.status(200).json(goal);
@@ -30,12 +32,26 @@ const setGoal = asyncHandler(async (req, res) => {
 // @desc    Update goal
 // @route   UPDATE /api/goals/:id
 // @access  Private
-const putGoal = asyncHandler(async (req, res) => {
+const updateGoal = asyncHandler(async (req, res) => {
   const goal = await Goal.findById(req.params.id);
 
   if (!goal) {
     res.status(400);
     throw new Error("Goal not found");
+  }
+
+  // check for user
+  const user = await User.findById(req.user.id);
+
+  if (!user) {
+    res.status(401);
+    throw new Error("User not found");
+  }
+
+  // check if user is owner of goal
+  if (goal.user.toString() !== user.id) {
+    res.status(401);
+    throw new Error("Not authorized");
   }
 
   const updatedGoal = await Goal.findByIdAndUpdate(req.params.id, req.body, { new: true });
@@ -54,6 +70,20 @@ const deleteGoal = asyncHandler(async (req, res) => {
     throw new Error("Goal not found");
   }
 
+    // check for user
+    const user = await User.findById(req.user.id);
+
+    if (!user) {
+      res.status(401);
+      throw new Error("User not found");
+    }
+  
+    // check if user is owner of goal
+    if (goal.user.toString() !== user.id) {
+      res.status(401);
+      throw new Error("Not authorized");
+    }
+
   const deletedGoal = await Goal.findByIdAndDelete(req.params.id);
 
   res.status(200).json(deletedGoal);
@@ -62,6 +92,6 @@ const deleteGoal = asyncHandler(async (req, res) => {
 module.exports = {
   getGoals,
   setGoal,
-  putGoal,
+  updateGoal,
   deleteGoal,
 };
