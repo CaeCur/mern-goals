@@ -1,4 +1,9 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import { register, reset } from "../features/auth/authSlice";
+import Spinner from "../components/Spinner";
 import { FaUser } from "react-icons/fa";
 
 export default function Register() {
@@ -11,15 +16,46 @@ export default function Register() {
 
   const { name, email, password, confirmPassword } = formData;
 
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  const { user, isLoading, isError, isSuccess, message } = useSelector((state) => state.auth);
+
   const changeHandler = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const onSubmit = (e) => {
     e.preventDefault();
+
+    if (password !== confirmPassword) {
+      toast.error("Passwords do not match");
+      return;
+    } else {
+      const userData = {
+        name,
+        email,
+        password,
+      };
+      dispatch(register(userData));
+    }
   };
 
-  return (
+  useEffect(() => {
+    if (isError) {
+      toast.error(message);
+    }
+
+    if (isSuccess || user) {
+      navigate("/");
+    }
+
+    dispatch(reset());
+  }, [user, isError, isSuccess, message, navigate, dispatch]);
+
+  return isLoading ? (
+    <Spinner />
+  ) : (
     <>
       <section className="heading">
         <h1>
@@ -62,7 +98,7 @@ export default function Register() {
               value={password}
               placeholder="Enter your password"
               onChange={changeHandler}
-              type="text"
+              type="password"
               className="form-control"
             />
           </div>
@@ -74,7 +110,7 @@ export default function Register() {
               value={confirmPassword}
               placeholder="Confirm Password"
               onChange={changeHandler}
-              type="text"
+              type="password"
               className="form-control"
             />
           </div>
