@@ -81,12 +81,7 @@ const loginUser = asyncHandler(async (req, res, next) => {
 // @route   GET /api/users/:id
 // @access  Private
 const getUser = asyncHandler(async (req, res, next) => {
-  const { _id, name, email } = await User.findById(req.user.id);
-  res.status(200).json({
-    id: _id,
-    name,
-    email,
-  });
+  res.status(200).json(req.user); // we already get the user from the token in the protect middleware
 });
 
 module.exports = { registerUser, loginUser, getUser };

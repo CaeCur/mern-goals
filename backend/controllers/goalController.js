@@ -41,15 +41,15 @@ const updateGoal = asyncHandler(async (req, res) => {
   }
 
   // check for user
-  const user = await User.findById(req.user.id);
+  // const user = await User.findById(req.user.id); // no need to re-check user since it is already in token
 
-  if (!user) {
+  if (!req.user) {
     res.status(401);
     throw new Error("User not found");
   }
 
   // check if user is owner of goal
-  if (goal.user.toString() !== user.id) {
+  if (goal.user.toString() !== req.user.id) {
     res.status(401);
     throw new Error("Not authorized");
   }
@@ -70,19 +70,19 @@ const deleteGoal = asyncHandler(async (req, res) => {
     throw new Error("Goal not found");
   }
 
-    // check for user
-    const user = await User.findById(req.user.id);
+  // check for user
+  // const user = await User.findById(req.user.id); // no need to re-check user since it is already in token
 
-    if (!user) {
-      res.status(401);
-      throw new Error("User not found");
-    }
-  
-    // check if user is owner of goal
-    if (goal.user.toString() !== user.id) {
-      res.status(401);
-      throw new Error("Not authorized");
-    }
+  if (!req.user) {
+    res.status(401);
+    throw new Error("User not found");
+  }
+
+  // check if user is owner of goal
+  if (goal.user.toString() !== req.user.id) {
+    res.status(401);
+    throw new Error("Not authorized");
+  }
 
   const deletedGoal = await Goal.findByIdAndDelete(req.params.id);
 

@@ -12,9 +12,19 @@ const initialState = {
   message: "",
 };
 
-// logout user
-export const logout = createAsyncThunk("auth/logout", async () => {
-  await authService.logout();
+// register user
+export const register = createAsyncThunk("auth/register", async (user, thunkAPI) => {
+  try {
+    return await authService.register(user);
+  } catch (err) {
+    // the error message could exist in a few places. Let's check them all
+    // and if we find one, set the message to that.
+    const message =
+      (err.response && err.response.data && err.response.data.message) ||
+      err.message ||
+      err.toString();
+    return thunkAPI.rejectWithValue(message);
+  }
 });
 
 // login user
@@ -32,19 +42,9 @@ export const login = createAsyncThunk("auth/login", async (user, thunkAPI) => {
   }
 });
 
-// register user
-export const register = createAsyncThunk("auth/register", async (user, thunkAPI) => {
-  try {
-    return await authService.register(user);
-  } catch (err) {
-    // the error message could exist in a few places. Let's check them all
-    // and if we find one, set the message to that.
-    const message =
-      (err.response && err.response.data && err.response.data.message) ||
-      err.message ||
-      err.toString();
-    return thunkAPI.rejectWithValue(message);
-  }
+// logout user
+export const logout = createAsyncThunk("auth/logout", async () => {
+  await authService.logout();
 });
 
 export const authSlice = createSlice({
@@ -56,7 +56,7 @@ export const authSlice = createSlice({
       state.isSuccess = false;
       state.isError = false;
       state.message = "";
-    },
+    }, // we want our user to persist, so don't reset it
   },
   extraReducers: (builder) => {
     builder
